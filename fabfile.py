@@ -11,8 +11,9 @@ from fabric.context_managers import *
 from fabric.contrib.project import *
 from fabric.colors import *
 
-
 from time import sleep
+
+ESPTOOL_PY_FILE= '/home/logic/_workspace/nodemcu_tryout/esptool-py/esptool.py'
 
 CWD = os.path.dirname(__file__)
 
@@ -40,6 +41,20 @@ def run(lua_file):
 def fresh_upload(lua_file):
     # mkfs()
     reset()
-    sleep(3)
+    print(yellow('sleep before upload ... '))
+    sleep(1)
+    upload(lua_file)
     run(lua_file)
     print(green('DONE!!'))
+
+
+def esptool_command(parameters, nodemcu_port="/dev/ttyUSB0"):
+    command_format="%s --port %s %s" % (ESPTOOL_PY_FILE, nodemcu_port, ' '.join(parameters))
+    with lcd(CWD):
+        local(command_format)
+
+def esptool_write_flash(firmware_file, flash_mode="dio"):
+    esptool_command(['write_flash', '-fm %s' % flash_mode, '0x00000', firmware_file])
+
+def update_firmware(firmware_file):
+    esptool_write_flash(firmware_file)
